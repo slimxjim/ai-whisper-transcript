@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Venv a media (testovaci video + virtualenv)
+prepis/
+
+# Logy a docasne soubory
+*.log
+*.docasny.txt
+
+# Omylem vznikle soubory / personal data
+nul
+sync.ffs_db
