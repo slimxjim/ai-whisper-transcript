@@ -47,7 +47,7 @@ def decode_audio_od(path, start_seconds):
     return np.concatenate(chunks)
 
 
-model = WhisperModel("turbo", device="auto", compute_type="int8")
+model = WhisperModel("turbo", device="auto", compute_type="default")
 
 if start_od > 0:
     decode_od = max(0.0, start_od - PRESAH_PRED)

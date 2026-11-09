@@ -1,0 +1,9 @@
+# Verze overene na tomto projektu (Windows, Python 3.12, GTX 1050 Ti / CUDA 12)
+faster-whisper==1.2.1
+av==12.3.0  # <=12.x: faster-whisper 1.2.1 predava metadata_errors, ktery PyAV >=13 odmitl
+
+# CUDA 12 runtime pro ctranslate2 (cublas64_12.dll, cudart64_12.dll)
+# Desktopova CUDA toolkit neni potreba — staci tyto pip baliceky.
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cuda-runtime-cu12==12.9.79
+nvidia-cuda-nvrtc-cu12==12.9.86

@@ -1,26 +1,41 @@
-# prepis.py
+# prepis.py — přepis videa na text
 
-Přepis audio/video souboru na text pomocí Whisperu (model `medium`, čeština), s časovými kódy. Výsledek se ukládá do `prepis.txt`.
+Přepis audio/video souboru na text pomocí Whisperu (model `turbo`, čeština), s časovými kódy. Výsledek se ukládá do `prepis.txt` (nebo do souboru zadaného jako 2. argument).
 
 ## TLDR
 
 ```bash
-pip install faster-whisper
-python prepis.py "cesta\k\video.mp4"
+bash setup.sh                                        # jen poprvé / po přenesení projektu
+.venv/Scripts/python.exe prepis.py "video.mp4" vystup.txt
 ```
 
-V tomto adresáři je video ve složce `prepis/` a prázdný venv `prepis/venv` — pokud chceš přepis spouštět přes něj, nejdřív do něj nainstaluj `faster-whisper` (jinak funguje systémový Python, kde je už nainstalovaný).
-
-```bash
-prepis/venv/Scripts/pip.exe install faster-whisper
-prepis/venv/Scripts/python.exe prepis.py "prepis/nazev.mp4"
-```
-
-Výstup: `prepis.txt` (jeden řádek = `[čas] text`).
+`setup.sh` vytvoří projektové `.venv`, nainstaluje `requirements.txt`
+a dopojí CUDA 12 runtime, aby `faster-whisper` běžel na NVIDIA GPU.
 
 ## Detaily
 
-- První běh si stáhne model `medium` (~1,5 GB) do mezipaměti (`~/.cache/huggingface`) — trvá déle.
+- **Prostředí:** všechno běží ve `.venv` ve složce projektu — systémový
+  Python se nepoužívá a nevznikají konflikty s jinými projekty.
+  `.venv` se **nepřenáší** mezi počítači — na novém stroji se vytváří
+  znovu přes `setup.sh`.
+- **CUDA:** `ctranslate2` (jádro faster-whisperu) potřebuje CUDA 12
+  knihovny. Místo instalace celého CUDA Toolkitu se v `requirements.txt`
+  instalují pip balíčky `nvidia-*-cu12` a `setup.sh` zkopíruje DLL
+  (`cublas64_12.dll`, `cudart64_12.dll`, …) do balíčku `ctranslate2`.
+  Bez NVIDIA GPU to není nutné — model poběží na CPU (výrazně pomaleji).
+- **Verze:** `av==12.3.0` je záměrně pinned — `faster-whisper` volá
+  `av.open(..., metadata_errors="ignore")`, což PyAV ≥13 odmítá.
+- **Model:** `turbo` se při prvním běhu stáhne do mezipaměti
+  (`~/.cache/huggingface`, řádově ~1,6 GB) — pak už je v cache.
 - `ffmpeg` není potřeba — faster-whisper dekóduje zvuk přes PyAV.
 - Podporuje MP4, MP3, WAV, MKV a další formáty, které PyAV/ffmpeg umí číst.
-- V Windows terminálu se diakritika může zobrazovat špatně (kódování konzole) — `prepis.txt` je vždy správně v UTF-8.
+- Volitelný 3. argument = sekundová pozice, od které pokračovat
+  (0 = od začátku); výsledek se **přidává** do zadaného výstupního souboru.
+- V Windows terminálu se diakritika může zobrazovat špatně (kódování
+  konzole) — výstupní soubor je vždy správně v UTF-8.
+
+## Hromadné zpracování
+
+Pro dávku videí viz `NAVOD.md` — skript `prepis_batch.py` projde
+adresář včetně podadresářů a ke každému videu vytvoří
+`<název>.prepis.txt` (přepis dělá přes `prepis.py`).

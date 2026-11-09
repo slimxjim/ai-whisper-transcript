@@ -4,7 +4,8 @@ Skript projde zadaný adresář **včetně podadresářů**, najde video soubory
 vytvoří přepis `<název_souboru>.prepis.txt` vedle něj (např. `video.mp4` →
 `video.mp4.prepis.txt`).
 
-- Přepis dělá přes `prepis.py` (faster-whisper, model `medium`, čeština).
+- Přepis dělá přes `prepis.py` (faster-whisper, model `turbo`, čeština,
+  CUDA na NVIDIA GPU).
 - Pokud přepis už existuje, soubor **přeskočí** a zapíše to do logu.
 - Na začátku zjistí počet souborů, celkovou velikost a délku a odhad doby
   zpracování. Průběh zpracovaného objemu dat ukazuje v **záhlaví okna
@@ -12,19 +13,22 @@ vytvoří přepis `<název_souboru>.prepis.txt` vedle něj (např. `video.mp4` �
 - Průběh a výsledky se ukládají do `prepis_batch.log` v kořeni zadaného
   adresáře.
 
-> **Důležité:** spouštěj to **systémovým `python`**, kde je nainstalovaný
-> `faster-whisper` — ne prázdným `prepis/venv`. Skript i `prepis.py` musí
-> zůstat ve složce `C:\HOME\DATA\Dokumenty`.
+> **Důležité:** spouštěj to **pythonem z projektového `.venv`**
+> (`.venv\Scripts\python.exe`), kde je nainstalovaný `faster-whisper`.
+> Skript i `prepis.py` musí zůstat ve složce projektu — `prepis_batch.py`
+> spouští `prepis.py` přes `sys.executable`, takže se `.venv` přenese
+> i do podprocesů automaticky.
 
 ---
 
 ## TLDR — nejrychlejší spuštění
 
 1. Stiskni `Win + R`.
-2. Vlož tento řádek a stiskni Enter:
+2. Vlož tento řádek a stiskni Enter (předpokládá `.venv` připravené
+   přes `bash setup.sh` — viz README):
 
    ```
-   cmd /k cd /d "C:\HOME\DATA\Dokumenty" && python prepis_batch.py "c:\HOME\DATA\Rekvalifikační kurz\2026 - Personalistka\4. SUO – 2. část"
+   cmd /k cd /d "D:\PROJECTS\AI\video-transcript" && .venv\Scripts\python.exe prepis_batch.py "cesta\k\videim"
    ```
 
 3. Až to poběží, můžeš okno minimalizovat — průběh je vidět v záhlaví okna
@@ -36,34 +40,38 @@ Hotovo. Podrobnosti a další způsoby spuštění jsou níž.
 
 ## 1) Příprava (jen poprvé / pokud python nefunguje)
 
-Ověř, že python umí faster-whisper:
+Ověř, že `.venv` umí faster-whisper:
 
 ```bat
-python -c "import faster_whisper; print('ok')"
+.venv\Scripts\python.exe -c "import faster_whisper; print('ok')"
 ```
 
-Pokud vypíše `ok`, můžeš spouštět. Pokud ne, nainstaluj:
+Pokud `.venv` neexistuje (nový počítač, smazaná složka), vytvoř a
+nakonfiguruj ho jedním příkazem:
 
-```bat
-pip install faster-whisper
+```bash
+bash setup.sh
 ```
+
+Skript nainstaluje `requirements.txt` a dopojí CUDA 12 runtime pro NVIDIA GPU.
+Pokud `.venv` už existuje, `setup.sh` je bezpečně zopakuje (idempotentní).
 
 ---
 
 ## 2) Spuštění v Command Promptu (cmd)
 
 1. Stiskni `Win + R`, do řádku napiš `cmd` a Enter.
-2. Přesuň se do složky se skripty:
+2. Přesuň se do složky projektu:
 
    ```bat
-   cd /d "C:\HOME\DATA\Dokumenty"
+   cd /d "D:\PROJECTS\AI\video-transcript"
    ```
 
 3. Spusť skript s cestou k adresáři s videi (cesta **musí být v uvozovkách**,
-   protože obsahuje mezery):
+   pokud obsahuje mezery):
 
    ```bat
-   python prepis_batch.py "c:\HOME\DATA\Rekvalifikační kurz\2026 - Personalistka\4. SUO – 2. část"
+   .venv\Scripts\python.exe prepis_batch.py "cesta\k\videim"
    ```
 
   Poznámka: skript bere **jen adresář** jako argument — další parametry
@@ -75,20 +83,20 @@ pip install faster-whisper
 
 1. Stiskni `Win + R`, do řádku napiš `powershell` a Enter.
    (Nebo `pwsh` pro PowerShell 7.)
-2. Přesuň se do složky se skripty:
+2. Přesuň se do složky projektu:
 
    ```powershell
-   Set-Location "C:\HOME\DATA\Dokumenty"
+   Set-Location "D:\PROJECTS\AI\video-transscript"
    ```
 
 3. Spusť skript:
 
    ```powershell
-   python prepis_batch.py "c:\HOME\DATA\Rekvalifikační kurz\2026 - Personalistka\4. SUO – 2. část"
+   .venv\Scripts\python.exe prepis_batch.py "cesta\k\videim"
    ```
 
-   V PowerShellu funguje i kratší varianta bez `.py`, ale plný tvar je
-   jednoznačnější.
+   V PowerShellu funguje i kratší varianta `.\.venv\Scripts\python.exe`,
+   ale plný tvar je jednoznačnější.
 
 ---
 
@@ -97,7 +105,7 @@ pip install faster-whisper
 Stiskni `Win + R` a do řádku vlož celý příkaz:
 
 ```
-cmd /k cd /d "C:\HOME\DATA\Dokumenty" && python prepis_batch.py "c:\HOME\DATA\Rekvalifikační kurz\2026 - Personalistka\4. SUO – 2. část"
+cmd /k cd /d "D:\PROJECTS\AI\video-transcript" && .venv\Scripts\python.exe prepis_batch.py "cesta\k\videim"
 ```
 
 - `cmd /k` = po skončení skriptu okno **zůstane otevřené**, takže uvidíš
@@ -123,28 +131,34 @@ cmd /k cd /d "C:\HOME\DATA\Dokumenty" && python prepis_batch.py "c:\HOME\DATA\Re
 - **Přerušení:** `Ctrl + C` zastaví aktuální přepis. Už hotové
   `.prepis.txt` soubory zůstanou — při dalším spuštění se přeskočí.
 - **Pokračování:** stačí spustit stejný příkaz znovu — existující přepisy
-  se automaticky přeskočí.
+  se automaticky přeskočí. U jednotlivého `prepis.py` jde o pokračování
+  od zadané sekundy (3. argument).
 - **Log:** `prepis_batch.log` ve složce s videi obsahuje přehled toho, co
   bylo přepsáno, přeskočeno nebo selhalo.
 - **Odhad doby:** koeficient `EST_SECONDS_PER_AUDIO_SECOND` v
   `prepis_batch.py` (výchozí 3,0) je jen hrubý — skutečná rychlost záleží
-  na výkonu PC. První video ukáže, jak to reálně běží.
-- **První běh** model `medium` (~1,5 GB) stáhne do mezipaměti — pak už je
+  na výkonu PC a GPU. První video ukáže, jak to reálně běží.
+- **První běh** model `turbo` (~1,6 GB) stáhne do mezipaměti — pak už je
   v cache.
 - **Rychlost:** `prepis.py` pro každý soubor znovu načítá model do paměti
   (řádově desítky sekund navíc na soubor). U 17 videí to znamená ~15 min
   čistého overheadu — pro pravidelné dávky by se vyplatilo model načíst
   jednou.
+- **GPU:** s CUDA (připraveným přes `setup.sh`) běží `turbo` na NVIDIA
+  GPU. Na GTX 1050 Ti se model interně přepne na float32 (float16 na
+  Pascalu není efektivní) — varování ctranslate2 je normální.
 - Cesta k adresáři je v příkladech s **uvozovkami** kvůli mezerám a
   diakritice — bez uvozovek by to nefungovalo.
 
 ### Řešení problémů
 
-- **`RuntimeError: mkl_malloc: failed to allocate memory`** — model
-  `medium` se nevejde do RAM (potřebuje zhruba 1,5–3 GB volné paměti).
-  Uvolni paměť (zavři prohlížeč apod.) a zkus znovu. Pokud se to opakuje,
-  je nutné v `prepis.py` přepnout na menší model — `WhisperModel("small")`
-  nebo `"base"` (řádek 6) — za cenu horší kvality přepisu.
+- **`RuntimeError: ... cublas64_12.dll is not found`** — chybí CUDA 12
+  runtime. Spusť `bash setup.sh`.
+- **`TypeError: open() got an unexpected keyword argument 'metadata_errors'`**
+  — nainstalovaná verze `av` je moc nová. `requirements.txt` pinnuje
+  `av==12.3.0`; oprav přes `.venv\Scripts\pip.exe install "av==12.3.0"`.
+- **`RuntimeError: mkl_malloc: failed to allocate memory`** — model se
+  nevejde do RAM. Uvolni paměť (zavři prohlížeč apod.) a zkus znovu.
 - **Skript hlásí `CHYBA` u některých souborů** — přepis daného souboru
   selhal, ale skript **pokračuje dalším** (chyby najdeš v
   `prepis_batch.log`). Oprav a pusť příkaz znovu — úspěšné přepisy se

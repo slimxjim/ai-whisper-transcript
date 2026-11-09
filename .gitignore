@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.pyc
+.venv/
 
 # Venv a media (testovaci video + virtualenv)
 prepis/
