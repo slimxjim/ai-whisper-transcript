@@ -4,7 +4,7 @@ Skript projde zadaný adresář **včetně podadresářů**, najde video soubory
 vytvoří přepis `<název_souboru>.prepis.txt` vedle něj (např. `video.mp4` →
 `video.mp4.prepis.txt`).
 
-- Přepis dělá přes `prepis.py` (faster-whisper, model `turbo`, čeština,
+- Přepis dělá přes `prepis.py` (faster-whisper, model `medium`, čeština,
   CUDA na NVIDIA GPU).
 - Pokud přepis už existuje, soubor **přeskočí** a zapíše to do logu.
 - Na začátku zjistí počet souborů, celkovou velikost a délku a odhad doby
@@ -23,7 +23,12 @@ vytvoří přepis `<název_souboru>.prepis.txt` vedle něj (např. `video.mp4` �
 
 ## TLDR — nejrychlejší spuštění
 
-1. Stiskni `Win + R`.
+**Nejjednodušší:** dvojklik na `start.bat` ve složce projektu — zeptá se,
+chceš jeden video soubor (volba 1) nebo složku s videi (volba 2), a pak
+se zeptá na cestu. Pro složku s videi se tak spustí právě tenhle
+`prepis_batch.py`.
+
+Ruční spuštění přes `Win + R`:
 2. Vlož tento řádek a stiskni Enter (předpokládá `.venv` připravené
    přes `bash setup.sh` — viz README):
 
@@ -138,13 +143,13 @@ cmd /k cd /d "D:\PROJECTS\AI\video-transcript" && .venv\Scripts\python.exe prepi
 - **Odhad doby:** koeficient `EST_SECONDS_PER_AUDIO_SECOND` v
   `prepis_batch.py` (výchozí 3,0) je jen hrubý — skutečná rychlost záleží
   na výkonu PC a GPU. První video ukáže, jak to reálně běží.
-- **První běh** model `turbo` (~1,6 GB) stáhne do mezipaměti — pak už je
-  v cache.
+- **První běh** model `medium` (~1,5 GB) stáhne do projektové cache
+  `.whisper\.cache\huggingface` — pak už je v cache.
 - **Rychlost:** `prepis.py` pro každý soubor znovu načítá model do paměti
   (řádově desítky sekund navíc na soubor). U 17 videí to znamená ~15 min
   čistého overheadu — pro pravidelné dávky by se vyplatilo model načíst
   jednou.
-- **GPU:** s CUDA (připraveným přes `setup.sh`) běží `turbo` na NVIDIA
+- **GPU:** s CUDA (připraveným přes `setup.sh`) běží `medium` na NVIDIA
   GPU. Na GTX 1050 Ti se model interně přepne na float32 (float16 na
   Pascalu není efektivní) — varování ctranslate2 je normální.
 - Cesta k adresáři je v příkladech s **uvozovkami** kvůli mezerám a

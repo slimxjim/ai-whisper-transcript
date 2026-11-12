@@ -6,6 +6,10 @@ __pycache__/
 # Venv a media (testovaci video + virtualenv)
 prepis/
 
+# Whisper modely (cache ~3.4 GB, stahne setup_env.py)
+.whisper/
+
+
 # Logy a docasne soubory
 *.log
 *.docasny.txt

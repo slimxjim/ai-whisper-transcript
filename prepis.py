@@ -1,5 +1,13 @@
-from faster_whisper import WhisperModel
+import os
 import sys
+from pathlib import Path
+
+# Whisper modely drzi projekt interne v .whisper/.cache/huggingface
+# (lze prepise pres HF_HOME). Nastavit pred importem faster_whisper.
+_HF_HOME = Path(__file__).resolve().parent / ".whisper" / ".cache" / "huggingface"
+os.environ.setdefault("HF_HOME", str(_HF_HOME))
+
+from faster_whisper import WhisperModel
 
 video = sys.argv[1]
 output = sys.argv[2] if len(sys.argv) > 2 else "prepis.txt"
@@ -47,7 +55,7 @@ def decode_audio_od(path, start_seconds):
     return np.concatenate(chunks)
 
 
-model = WhisperModel("turbo", device="auto", compute_type="default")
+model = WhisperModel("medium", device="auto", compute_type="default")
 
 if start_od > 0:
     decode_od = max(0.0, start_od - PRESAH_PRED)
