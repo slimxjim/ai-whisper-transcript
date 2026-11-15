@@ -21,20 +21,26 @@ REM ---------- 1) kontrola Pythonu ----------
 :check_python
 echo Kontroluji Python ...
 set "PYEXE="
-python --version >nul 2>&1 && set "PYEXE=python"
+REM Uprednostnime overene verze 3.10-3.13 (Python 3.14+ nema balicek pro av).
+for %%v in (3.12 3.13 3.11 3.10) do (
+    if not defined PYEXE (
+        py -%%v --version >nul 2>&1 && set "PYEXE=py -%%v"
+    )
+)
 if not defined PYEXE (
-    py --version >nul 2>&1 && set "PYEXE=py"
+    python --version >nul 2>&1 && set "PYEXE=python"
 )
 if not defined PYEXE (
     py -3 --version >nul 2>&1 && set "PYEXE=py -3"
 )
 
-if defined PYEXE (
-    for /f "tokens=*" %%v in ('%PYEXE% --version 2^>^&1') do set "PYVER=%%v"
-    echo   Nalezen: %PYVER%  (%PYEXE%)
-    echo.
-    goto python_ok
-)
+if not defined PYEXE goto no_python
+for /f "tokens=*" %%v in ('%PYEXE% --version 2^>^&1') do set "PYVER=%%v"
+echo   Nalezen: %PYVER%  [%PYEXE%]
+echo.
+goto python_ok
+
+:no_python
 
 echo.
 echo *** CHYBI: Python neni na tomto pocitaci (nebo neni v PATH) ***
@@ -54,18 +60,19 @@ cls
 goto check_python
 
 :python_ok
-REM Python musi byt aspoň 3.10 — overime
-echo %PYVER% | findstr "3.1" >nul
-if errorlevel 1 (
-    echo.
-    echo *** POZOR: verze %PYVER% muze byt moc stara. ***
-    echo   Potrebujeme Python 3.10 az 3.13.
-    echo   Nainstaluj novejsi verzi — viz INSTALLSTEPS.md
+REM Python musi byt 3.10 az 3.13 — overime (3.14+ neni podporovana)
+echo %PYVER% | findstr /r /c:"Python 3.1[0-3]" >nul
+if not errorlevel 1 goto version_ok
 echo.
-    pause
-    cls
-    goto check_python
-)
+echo *** POZOR: verze %PYVER% neni podporovana. ***
+echo   Potrebujeme Python 3.10 az 3.13, napr. 3.12.
+echo   Nainstaluj ji — viz INSTALLSTEPS.md
+echo.
+pause
+cls
+goto check_python
+
+:version_ok
 
 REM ---------- 2) Whisper modely (projektova cache) ----------
 echo.
@@ -91,7 +98,7 @@ if %VYSLEDEK%==0 (
     echo.
 ) else (
     echo ============================================
-    echo   INSTALACE SKONCILA CHYBOU (kod %VYSLEDEK%)
+    echo   INSTALACE SKONCILA CHYBOU ^(kod %VYSLEDEK%^)
     echo ============================================
     echo.
     echo Zkontroluj vyse uvedenou chybu, oprav ji a
